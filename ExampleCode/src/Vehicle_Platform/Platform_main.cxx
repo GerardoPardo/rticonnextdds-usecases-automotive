@@ -99,7 +99,13 @@ void Platform_PlatformControlListener::on_data_available(DDSDataReader* reader)
     for (i = 0; i < data_seq.length(); ++i) {
         if (info_seq[i].valid_data) {
             /* Print the data and store some data for use in the status message*/
-            Platform_PlatformControlTypeSupport::print_data(&data_seq[i]);
+            // Platform_PlatformControlTypeSupport::print_data(&data_seq[i]);
+            printf("PlatformStatus: t = %d.%d speed = %.2f, steer_angle = %.2f\n",
+                data_seq[i].timestamp.s%10000,
+                data_seq[i].timestamp.ns/1000000,
+                data_seq[i].speed,
+                data_seq[i].vehicleSteerAngle);
+
             _vehicle_steer_angle = data_seq[i].vehicleSteerAngle;
             _blinker_status = data_seq[i].blinkerStatus;
         }

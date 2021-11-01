@@ -9,8 +9,8 @@ For more information, type 'rtiddsgen -help' at a command shell
 or consult the RTI Connext manual.
 */
 
-#ifndef automotive_2097331952_h
-#define automotive_2097331952_h
+#ifndef automotive_2097331918_h
+#define automotive_2097331918_h
 
 #ifndef NDDS_STANDALONE_TYPE
 #ifndef ndds_cpp_h

@@ -8,8 +8,8 @@ For more information, type 'rtiddsgen -help' at a command shell
 or consult the RTI Connext manual.
 */
 
-#ifndef automotiveSupport_2097331952_h
-#define automotiveSupport_2097331952_h
+#ifndef automotiveSupport_2097331918_h
+#define automotiveSupport_2097331918_h
 
 /* Uses */
 #include "automotive.h"
@@ -727,5 +727,5 @@ DDS_DATAREADER_W_DATA_CONSISTENCY_CHECK(CameraImage_CameraImageDataDataReader, C
 #define NDDSUSERDllExport
 #endif
 
-#endif  /* automotiveSupport_2097331952_h */
+#endif  /* automotiveSupport_2097331918_h */
 

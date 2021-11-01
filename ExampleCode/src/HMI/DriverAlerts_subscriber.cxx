@@ -227,6 +227,10 @@ extern "C" int subscriber_main(int sample_count)
     }
 
     /* Main loop */
+    int total_alarm_count = 0;
+    char alarm_text[256];
+
+
     for (count=0; (sample_count == 0) || (count < sample_count); ++count) {
 
         Alerts_DriverAlertsSeq data_seq;
@@ -264,28 +268,61 @@ extern "C" int subscriber_main(int sample_count)
 
                 /* If we have valid data process it */
                 for (i = 0; i < data_seq.length(); ++i) {
+                    sprintf(alarm_text, "No Alarm");
+                    bool alarm_handled = true;
                     if (info_seq[i].valid_data) {
                         /* Print the sample for information purpose*/
-                        Alerts_DriverAlertsTypeSupport::print_data(&data_seq[i]);
-
                         /* Pop-up the right message box. On Linux we use SDL2 */
                         if (data_seq[i].backCollision) {
-                            MessageBoxUtil::PopUp((char *)"Back Collision Warning", MSGBOX_WARNING);
+                            alarm_handled = false;
+                            sprintf(alarm_text, "Alarm %d: %s", ++total_alarm_count, "Back Collision Warning");
                         }
                         if (data_seq[i].blindSpotDriver) {
-                            MessageBoxUtil::PopUp((char *)"Car in blind spot on driver side", MSGBOX_INFO);
+                            alarm_handled = false;
+                            sprintf(alarm_text, "Alarm %d: %s", ++total_alarm_count, "Car in blind spot on driver side");
                         }
                         if (data_seq[i].blindSpotPassenger) {
-                            MessageBoxUtil::PopUp((char *)"Car in blind spot on passanger side", MSGBOX_INFO);
+                            alarm_handled = false;
+                            sprintf(alarm_text, "Alarm %d: %s", ++total_alarm_count, "Car in blind spot on passanger side");
                         }
                         if (data_seq[i].driverAttention) {
-                            MessageBoxUtil::PopUp((char *)"Driver Attention", MSGBOX_ATTENTION);
+                            alarm_handled = false;
+                            sprintf(alarm_text, "Alarm %d: %s", ++total_alarm_count, "Driver Attention");
                         }
                         if (data_seq[i].frontCollision) {
-                            MessageBoxUtil::PopUp((char *)"Front Collision Warning", MSGBOX_ATTENTION);
+                            alarm_handled = false;
+                            sprintf(alarm_text, "Alarm %d: %s", ++total_alarm_count, "Front Collision Warning");
                         }
                         if (data_seq[i].parkingCollision) {
-                            MessageBoxUtil::PopUp((char *)"Parking Collision Warning", MSGBOX_WARNING);
+                            alarm_handled = false;
+                            sprintf(alarm_text, "Alarm %d: %s", ++total_alarm_count, "Parking Collision Warning");
+                        }
+                        
+                        //Alerts_DriverAlertsTypeSupport::print_data(&data_seq[i]);
+                        if ( alarm_handled ) {
+                            printf("HMI: t = %d.%d, count = %d, alarm handled\n",
+                                info_seq[i].reception_timestamp.sec%10000,
+                                info_seq[i].reception_timestamp.nanosec/1000000,       
+                                total_alarm_count
+                                );                        
+                        }
+                        else {
+                            printf("HMI: t = %d.%d, count = %d, alarms: "
+                                "( backCollision=%s, blindSpotDriver=%s, blindSpotPassenger=%s,"
+                                " driverAttention=%s, frontCollision=%s, parkingCollision=%s)"
+                                ", alarm_text: \"%s\"\n",
+                                info_seq[i].reception_timestamp.sec%10000,
+                                info_seq[i].reception_timestamp.nanosec/1000000,
+                                total_alarm_count,
+                                data_seq[i].backCollision?"true":"false",
+                                data_seq[i].blindSpotDriver?"true":"false",
+                                data_seq[i].blindSpotPassenger?"true":"false",
+                                data_seq[i].driverAttention?"true":"false",
+                                data_seq[i].frontCollision?"true":"false",
+                                data_seq[i].parkingCollision?"true":"false",
+                                alarm_text
+                                );
+                            MessageBoxUtil::PopUp(alarm_text, MSGBOX_ATTENTION);
                         }
                     }
                 }

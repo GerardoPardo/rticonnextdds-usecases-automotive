@@ -131,17 +131,18 @@ void sensor_msgs_msg_dds__PointCloud2_Listener::on_data_available(DDSDataReader*
     }
 
     int dsLen = data_seq.length();
+    int points = 0;
     for (i = 0; i < dsLen; ++i) {
         if (info_seq[i].valid_data) {
-            printf("Received %d dds sample with %d points; t = %d.%d\n",
-                dsLen, 
-                data_seq[i].data_.length(),
-                data_seq[i].header_.stamp_.sec_,
-                data_seq[i].header_.stamp_.nanosec_
-            );
-            // sensor_msgs_msg_dds__PointCloud2_TypeSupport::print_data(&data_seq[i]);
-            
+            points += data_seq[i].data_.length();
         }
+    }
+    if ( points > 0 ) {
+        printf("SensorFusion: t = %d.%d, got pointcloud with %d points\n",
+                data_seq[0].header_.stamp_.sec_%10000,
+                data_seq[0].header_.stamp_.nanosec_/1000000,
+                points
+            );
     }
 
     retcode = sensor_msgs_msg_dds__PointCloud2__reader->return_loan(data_seq, info_seq);

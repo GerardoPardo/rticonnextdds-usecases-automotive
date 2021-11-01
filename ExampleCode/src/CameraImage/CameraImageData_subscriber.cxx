@@ -65,6 +65,9 @@ uint64_t UtcNowPrecise()
 
 class CameraImage_CameraImageDataListener : public DDSDataReaderListener {
   public:
+    CameraImage_CameraImageDataListener(DDSDomainParticipant *participant) :
+        participant_(participant) { }
+
     virtual void on_requested_deadline_missed(
         DDSDataReader* /*reader*/,
         const DDS_RequestedDeadlineMissedStatus& /*status*/) {}
@@ -90,6 +93,9 @@ class CameraImage_CameraImageDataListener : public DDSDataReaderListener {
         const DDS_SubscriptionMatchedStatus& /*status*/) {}
 
     virtual void on_data_available(DDSDataReader* reader);
+
+    private:
+        DDSDomainParticipant *participant_;
 };
 
 /** ----------------------------------------------------------------
@@ -97,6 +103,37 @@ class CameraImage_CameraImageDataListener : public DDSDataReaderListener {
  * given a send timestamp and a receive timestamp, calculate and print
  * the timing stats and sample counter.
  **/
+void calcAndPrintTransitTime(DDS_Time_t &tSend, DDS_Time_t &tReceive)
+{
+    static double tMin = 1000; // Any number larger than the latency
+    static double tMax = 0;
+    static double tSum = 0;
+    static uint32_t tSampleCount = 0;
+
+    double tSend_s    = (double)tSend.sec + 1e-9*((double)tSend.nanosec);
+    double tReceive_s = (double)tReceive.sec + 1e-9*((double)tReceive.nanosec);
+    static double tStart_s = 0;
+    if ( tStart_s == 0 ) {
+        tStart_s = tReceive_s;
+    }
+
+    double tDelta = tReceive_s - tSend_s;
+    if (tDelta < tMin) { tMin = tDelta; }
+    if (tDelta > tMax) { tMax = tDelta; }
+    tSum += tDelta;
+    tSampleCount++;
+    double tAvg = tSum / tSampleCount;
+    fprintf(stdout, "CameraImageSub: t=%d.%d, recv=%u, lat: %2.3f (min: %2.3f, max: %2.3f, avg: %2.3f), BW: %3.3f MB/s\n",
+        tReceive.sec%10000,
+        tReceive.nanosec/1000000,
+        tSampleCount,
+        tDelta, tMin, tMax, tAvg, 
+        1e-6*((double)(tSampleCount*MAX_IMAGE_SIZE))/(tReceive_s-tStart_s)
+        );
+    return;
+}
+
+#ifdef OLD
 void calcAndPrintTransitTime(uint64_t tSend, uint64_t tReceive)
 {
     static uint64_t tMin = (uint64_t)-1;
@@ -104,7 +141,13 @@ void calcAndPrintTransitTime(uint64_t tSend, uint64_t tReceive)
     static uint64_t tSum = 0;
     static uint32_t tSampleCount = 0;
 
-    uint32_t tDelta = tReceive - tSend;
+    double tReceive_s = ((double)tReceive)*1e-9;
+    static double tStart_s = 0;
+    if ( tStart_s == 0 ) {
+        tStart_s = tReceive_s;
+    }
+
+    uint32_t tDelta = (uint32_t)(tReceive - tSend);
     if (tDelta < tMin)
         tMin = tDelta;
     if (tDelta > tMax)
@@ -112,14 +155,20 @@ void calcAndPrintTransitTime(uint64_t tSend, uint64_t tReceive)
     tSum += tDelta;
     tSampleCount++;
     double tAvg = (((double)tSum / tSampleCount) / 1000000000);
-    fprintf(stdout, "tNow: %2.7f tMin: %2.7f tMax: %2.7f, tAvg: %2.7f N:%u size:%u (%3.3f MB/s avg)\n",
+    fprintf(stdout, "CameraImageSub: t=%lu.%lu, N=%u, t: %2.6f (min: %2.6f max: %2.3f, avg: %2.3f) size: %u (%3.3f MB/s)"
+                    ", bandwidth: %3.3f MB/s\n",
+        tReceive/1000000000, (tReceive%1000000000)/10000000,
+        tSampleCount,
         ((double)tDelta / 1000000000),
         ((double)tMin / 1000000000),
         ((double)tMax / 1000000000),
-        tAvg, tSampleCount, MAX_IMAGE_SIZE,
-        ((double)MAX_IMAGE_SIZE / tAvg) / 1000000);
+        tAvg, MAX_IMAGE_SIZE,
+        ((double)MAX_IMAGE_SIZE / tAvg) / 1000000,
+        1e-6*((double)(tSampleCount*MAX_IMAGE_SIZE))/(tReceive_s-tStart_s)
+        );
     return;
 }
+#endif
 
 /** ----------------------------------------------------------------
  * checkLfsrDataInArray()
@@ -173,14 +222,17 @@ void CameraImage_CameraImageDataListener::on_data_available(DDSDataReader* reade
     for (i = 0; i < data_seq.length(); ++i) {
         if (info_seq[i].valid_data) {
             // get the current time value
-            uint64_t tReceive = UtcNowPrecise();
+            //uint64_t tReceive = UtcNowPrecise();            
 
 #ifdef DDS_LARGE_DATA_FLAT_DATA
             // get the root to the Flat Data sample
             CameraImage_CameraImageDataOffset sample_root = data_seq[i].root();
 
             // get the send-timestamp value from the received packet
-            uint64_t tSend = (((uint64_t)sample_root.sec_()) * 1000000000) + sample_root.nanosec_();
+            // uint64_t tSend = (((uint64_t)sample_root.sec_()) * 1000000000) + sample_root.nanosec_();
+            DDS_Time_t tSend;
+            tSend.sec = sample_root.sec_();
+            tSend.nanosec = sample_root.nanosec_();
 
             // verify the contents of the received data (optional)
             auto data_array = rti::flat::plain_cast(sample_root.data());
@@ -189,7 +241,10 @@ void CameraImage_CameraImageDataListener::on_data_available(DDSDataReader* reade
 
 #else  // ndef DDS_LARGE_DATA_FLAT_DATA
             // get the send-timestamp value from the received packet
-            uint64_t tSend = (((uint64_t)data_seq[i].sec_) * 1000000000) + data_seq[i].nanosec_;
+            // uint64_t tSend = (((uint64_t)data_seq[i].sec_) * 1000000000) + data_seq[i].nanosec_;
+            DDS_Time_t tSend;
+            tSend.sec = data_seq[i].sec_;
+            tSend.nanosec = data_seq[i].nanosec_;
 
             // verify the contents of the received data (optional)
             uint32_t *rcvBuffer = (uint32_t *) &data_seq[i].data[0];
@@ -197,7 +252,7 @@ void CameraImage_CameraImageDataListener::on_data_available(DDSDataReader* reade
 
 #endif  // ndef DDS_LARGE_DATA_FLAT_DATA
             // print the transit timing
-            calcAndPrintTransitTime(tSend, tReceive);
+            calcAndPrintTransitTime(tSend, info_seq[i].reception_timestamp);
         }
     }
 
@@ -249,14 +304,9 @@ static int subscriber_shutdown(
 **/extern "C" int subscriber_main(int sample_count)
 {
     DDSDomainParticipant *participant = NULL;
-    DDSSubscriber *subscriber = NULL;
-    DDSTopic *topic = NULL;
     CameraImage_CameraImageDataListener *reader_listener = NULL;
     DDSDataReader *reader = NULL;
-    DDS_ReturnCode_t retcode;
-    const char *type_name = NULL;
     int count = 0;
-    int domainId = 0;
     DDS_Duration_t receive_period = {4,0};
     int status = 0;
 
@@ -268,8 +318,6 @@ static int subscriber_shutdown(
         receive_period.sec = time / 1000;
         receive_period.nanosec = (time % 1000) * 1000 * 1000;
     }
-
-    domainId = prop->getLongProperty("config.domainId");
 
     std::string topicName = prop->getStringProperty("topic.Sensor");
     if (topicName == "") {
@@ -291,58 +339,37 @@ static int subscriber_shutdown(
         return -1;
     }
 
+    if ( DDSTheParticipantFactory->register_type_support(
+            CameraImage_CameraImageDataTypeSupport::register_type, 
+            CameraImage_CameraImageDataTypeSupport::get_type_name())
+        != DDS_RETCODE_OK) {
+
+        fprintf(stderr, "register_type_support error(%s:%d)\n", __FILE__, __LINE__);
+        subscriber_shutdown(participant);
+        return -1;
+    }
 
 
-    /* To customize the participant QoS, use the configuration file USER_QOS_PROFILES.xml */
+    /* To customize participant QoS, use the configuration file USER_QOS_PROFILES.xml */
     // create participant
-    participant = DDSTheParticipantFactory->create_participant_with_profile(
-        domainId, qosLibrary.c_str(), qosProfile.c_str(),
-        NULL /* listener */, DDS_STATUS_MASK_NONE);
+	participant = DDSTheParticipantFactory->create_participant_from_config("automotive_lib::rearViewCameraObserver");
     if (participant == NULL) {
-        fprintf(stderr, "create_participant error(%s:%d)\n", __FILE__, __LINE__);
+        fprintf(stderr, "create_participant_from_config error(%s:%d)\n", __FILE__, __LINE__);
         subscriber_shutdown(participant);
         return -1;
+    }
+    else {
+        fprintf(stderr, "Created Participant from config: \"automotive_lib::rearViewCameraObserver\"\n");
     }
 
-    // create subscriber
-    subscriber = participant->create_subscriber_with_profile(
-        qosLibrary.c_str(), qosProfile.c_str(), NULL /* listener */, DDS_STATUS_MASK_NONE);
-    if (subscriber == NULL) {
-        fprintf(stderr, "create_subscriber error(%s:%d)\n", __FILE__, __LINE__);
-        subscriber_shutdown(participant);
-        return -1;
-    }
-
-    // register the type and create the topic
-    type_name = CameraImage_CameraImageDataTypeSupport::get_type_name();
-    retcode = CameraImage_CameraImageDataTypeSupport::register_type(
-        participant, type_name);
-    if (retcode != DDS_RETCODE_OK) {
-        fprintf(stderr, "register_type error %d (%s:%d)\n", retcode, __FILE__, __LINE__);
-        subscriber_shutdown(participant);
-        return -1;
-    }
-    topic = participant->create_topic_with_profile(
-        topicName.c_str(),
-        type_name, qosLibrary.c_str(), qosProfile.c_str(), NULL /* listener */,
-        DDS_STATUS_MASK_NONE);
-    if (topic == NULL) {
-        fprintf(stderr, "create_topic error(%s:%d)\n", __FILE__, __LINE__);
-        subscriber_shutdown(participant);
-        return -1;
-    }
-
-    // create a data reader listener and datareader
-    reader_listener = new CameraImage_CameraImageDataListener();
-    reader = subscriber->create_datareader_with_profile(
-        topic, qosLibrary.c_str(), qosProfile.c_str(), reader_listener,
-        DDS_STATUS_MASK_ALL & ~~DDS_DATA_AVAILABLE_STATUS);
+    reader = participant->lookup_datareader_by_name("CameraSubscriber::CameraReader");
     if (reader == NULL) {
-        fprintf(stderr, "create_datareader error(%s:%d)\n", __FILE__, __LINE__);
+        fprintf(stderr, "lookup_datareader_by_name error(%s:%d)\n", __FILE__, __LINE__);
         subscriber_shutdown(participant);
-        delete reader_listener;
         return -1;
     }
+    reader_listener = new CameraImage_CameraImageDataListener(participant);
+    reader->set_listener(reader_listener, DDS_STATUS_MASK_ALL & ~~DDS_DATA_AVAILABLE_STATUS);
 
     printf("Start Receiving\n");
     /* Main loop */

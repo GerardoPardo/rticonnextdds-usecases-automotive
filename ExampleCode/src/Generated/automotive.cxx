@@ -2952,8 +2952,6 @@ void Lane_LaneObject_finalize_optional_members(
     deallocParamsTmp.delete_pointers = (DDS_Boolean)deletePointers;
     deallocParamsTmp.delete_optional_members = DDS_BOOLEAN_TRUE;
 
-    Lane_ConfidenceEnum_finalize_optional_members(&sample->confidence, deallocParams->delete_pointers);
-    Lane_LaneBoundaryEnum_finalize_optional_members(&sample->boundaryType, deallocParams->delete_pointers);
 }
 
 RTIBool Lane_LaneObject_copy(
@@ -3331,8 +3329,6 @@ void Lane_LaneSensor_finalize_optional_members(
     deallocParamsTmp.delete_pointers = (DDS_Boolean)deletePointers;
     deallocParamsTmp.delete_optional_members = DDS_BOOLEAN_TRUE;
 
-    Lane_LaneObject_finalize_optional_members(&sample->left, deallocParams->delete_pointers);
-    Lane_LaneObject_finalize_optional_members(&sample->right, deallocParams->delete_pointers);
 }
 
 RTIBool Lane_LaneSensor_copy(
@@ -4232,18 +4228,6 @@ void Lidar_PCloud_finalize_optional_members(
     deallocParamsTmp.delete_pointers = (DDS_Boolean)deletePointers;
     deallocParamsTmp.delete_optional_members = DDS_BOOLEAN_TRUE;
 
-    {
-        DDS_UnsignedLong i, length;
-        length = Lidar_PointSeq_get_length(
-            &sample->Location);
-
-        for (i = 0; i < length; i++) {
-            Lidar_Point_finalize_optional_members(
-                Lidar_PointSeq_get_reference(
-                    &sample->Location, i), deallocParams->delete_pointers);
-        }
-    }  
-
 }
 
 RTIBool Lidar_PCloud_copy(
@@ -4629,8 +4613,6 @@ void Lidar_LidarSensor_finalize_optional_members(
     deallocParamsTmp.delete_pointers = (DDS_Boolean)deletePointers;
     deallocParamsTmp.delete_optional_members = DDS_BOOLEAN_TRUE;
 
-    POSIXTimestamp_finalize_optional_members(&sample->timestamp, deallocParams->delete_pointers);
-    Lidar_PCloud_finalize_optional_members(&sample->ptCloud, deallocParams->delete_pointers);
 }
 
 RTIBool Lidar_LidarSensor_copy(
@@ -5085,8 +5067,6 @@ void Platform_PlatformControl_finalize_optional_members(
     deallocParamsTmp.delete_pointers = (DDS_Boolean)deletePointers;
     deallocParamsTmp.delete_optional_members = DDS_BOOLEAN_TRUE;
 
-    POSIXTimestamp_finalize_optional_members(&sample->timestamp, deallocParams->delete_pointers);
-    IndicatorStatusEnum_finalize_optional_members(&sample->blinkerStatus, deallocParams->delete_pointers);
 }
 
 RTIBool Platform_PlatformControl_copy(
@@ -5617,8 +5597,6 @@ void Platform_PlatformStatus_finalize_optional_members(
     deallocParamsTmp.delete_pointers = (DDS_Boolean)deletePointers;
     deallocParamsTmp.delete_optional_members = DDS_BOOLEAN_TRUE;
 
-    POSIXTimestamp_finalize_optional_members(&sample->timestamp, deallocParams->delete_pointers);
-    IndicatorStatusEnum_finalize_optional_members(&sample->blinkerStatus, deallocParams->delete_pointers);
 }
 
 RTIBool Platform_PlatformStatus_copy(
@@ -6516,8 +6494,6 @@ void Sensor_SensorObject_finalize_optional_members(
     deallocParamsTmp.delete_pointers = (DDS_Boolean)deletePointers;
     deallocParamsTmp.delete_optional_members = DDS_BOOLEAN_TRUE;
 
-    ClassificationEnum_finalize_optional_members(&sample->classification, deallocParams->delete_pointers);
-    Sensor_RangeModeEnum_finalize_optional_members(&sample->rangeMode, deallocParams->delete_pointers);
 }
 
 RTIBool Sensor_SensorObject_copy(
@@ -6925,19 +6901,6 @@ void Sensor_SensorObjectList_finalize_optional_members(
 
     deallocParamsTmp.delete_pointers = (DDS_Boolean)deletePointers;
     deallocParamsTmp.delete_optional_members = DDS_BOOLEAN_TRUE;
-
-    POSIXTimestamp_finalize_optional_members(&sample->timestamp, deallocParams->delete_pointers);
-    {
-        DDS_UnsignedLong i, length;
-        length = Sensor_SensorObjectSeq_get_length(
-            &sample->objects);
-
-        for (i = 0; i < length; i++) {
-            Sensor_SensorObject_finalize_optional_members(
-                Sensor_SensorObjectSeq_get_reference(
-                    &sample->objects, i), deallocParams->delete_pointers);
-        }
-    }  
 
 }
 
@@ -7356,7 +7319,6 @@ void Vision_VisionObject_finalize_optional_members(
     deallocParamsTmp.delete_pointers = (DDS_Boolean)deletePointers;
     deallocParamsTmp.delete_optional_members = DDS_BOOLEAN_TRUE;
 
-    ClassificationEnum_finalize_optional_members(&sample->classification, deallocParams->delete_pointers);
 }
 
 RTIBool Vision_VisionObject_copy(
@@ -7782,19 +7744,6 @@ void Vision_VisionSensor_finalize_optional_members(
 
     deallocParamsTmp.delete_pointers = (DDS_Boolean)deletePointers;
     deallocParamsTmp.delete_optional_members = DDS_BOOLEAN_TRUE;
-
-    POSIXTimestamp_finalize_optional_members(&sample->timestamp, deallocParams->delete_pointers);
-    {
-        DDS_UnsignedLong i, length;
-        length = Vision_VisionObjectSeq_get_length(
-            &sample->objects);
-
-        for (i = 0; i < length; i++) {
-            Vision_VisionObject_finalize_optional_members(
-                Vision_VisionObjectSeq_get_reference(
-                    &sample->objects, i), deallocParams->delete_pointers);
-        }
-    }  
 
 }
 
@@ -8555,7 +8504,6 @@ void std_msgs_msg_dds__Header__finalize_optional_members(
     deallocParamsTmp.delete_pointers = (DDS_Boolean)deletePointers;
     deallocParamsTmp.delete_optional_members = DDS_BOOLEAN_TRUE;
 
-    builtin_interfaces_msg_dds__Time__finalize_optional_members(&sample->stamp_, deallocParams->delete_pointers);
 }
 
 RTIBool std_msgs_msg_dds__Header__copy(
@@ -9631,19 +9579,6 @@ void sensor_msgs_msg_dds__PointCloud2__finalize_optional_members(
 
     deallocParamsTmp.delete_pointers = (DDS_Boolean)deletePointers;
     deallocParamsTmp.delete_optional_members = DDS_BOOLEAN_TRUE;
-
-    std_msgs_msg_dds__Header__finalize_optional_members(&sample->header_, deallocParams->delete_pointers);
-    {
-        DDS_UnsignedLong i, length;
-        length = sensor_msgs_msg_dds__PointField_Seq_get_length(
-            &sample->fields_);
-
-        for (i = 0; i < length; i++) {
-            sensor_msgs_msg_dds__PointField__finalize_optional_members(
-                sensor_msgs_msg_dds__PointField_Seq_get_reference(
-                    &sample->fields_, i), deallocParams->delete_pointers);
-        }
-    }  
 
 }
 
@@ -10875,7 +10810,6 @@ void ShapeTypeExtended_finalize_optional_members(
     deallocParamsTmp.delete_pointers = (DDS_Boolean)deletePointers;
     deallocParamsTmp.delete_optional_members = DDS_BOOLEAN_TRUE;
 
-    ShapeFillKind_finalize_optional_members(&sample->fillKind, deallocParams->delete_pointers);
 }
 
 RTIBool ShapeTypeExtended_copy(

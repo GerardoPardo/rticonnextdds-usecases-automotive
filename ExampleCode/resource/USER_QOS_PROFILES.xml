@@ -26,7 +26,7 @@ For more information about XML QoS Profiles see Chapter 17 in the
 RTI Connext user manual.
 -->
 <dds xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-     xsi:noNamespaceSchemaLocation="http://community.rti.com/schema/6.0.0/rti_dds_qos_profiles.xsd"
+     xsi:noNamespaceSchemaLocation="http://community.rti.com/schema/6.0.0/rti_dds_profiles.xsd"
      version="6.0.0">
   <!-- QoS Library containing the QoS profile used in the Automotive Case + CODE.
        A QoS library is a named set of QoS profiles.
@@ -388,17 +388,17 @@ RTI Connext user manual.
         </discovery>
       </participant_qos>
       <datawriter_qos>
-        <publication_name>
-          <name>rearViewCamWriter</name>
-        </publication_name>
         <publish_mode>
           <kind>ASYNCHRONOUS_PUBLISH_MODE_QOS</kind>
         </publish_mode>
       </datawriter_qos>
       <datareader_qos>
-        <subscription_name>
-          <name>rearViewCamReader</name>
-        </subscription_name>
+        <time_based_filter>
+            <minimum_separation>
+                <sec>9</sec>
+                <nanosec>800000000</nanosec>
+            </minimum_separation>
+        </time_based_filter>
       </datareader_qos>
     </qos_profile>
     
@@ -439,4 +439,49 @@ RTI Connext user manual.
             </participant_qos>
         </qos_profile>
   </qos_library>
+
+  <!--
+  <types>
+      <struct name="CameraImageData">
+        <member name="mylong" type="long"/>
+      </struct>
+  </types>
+  -->
+
+  <domain_participant_library name="automotive_lib">
+    <domain_participant name="rearViewCamera" domain_id="0">
+      <topic name="CameraImageData" register_type_ref="CameraImage::CameraImageData"/>
+
+      <publisher name="CameraPublisher">
+        <data_writer name="CameraWriter" topic_ref="CameraImageData">
+          <datawriter_qos base_name="Demo_Library::CameraImage_Profile"/>
+        </data_writer>
+      </publisher>
+
+      <participant_qos base_name="Demo_Library::CameraImage_Profile">
+        <participant_name>
+          <name>rearViewCamera</name>
+          <role_name>rearViewCamera</role_name>
+        </participant_name>
+      </participant_qos>
+    </domain_participant>
+    
+    <domain_participant name="rearViewCameraObserver" domain_id="0">
+      <topic name="CameraImageData" register_type_ref="CameraImage::CameraImageData"/>
+
+      <subscriber name="CameraSubscriber">
+        <data_reader name="CameraReader" topic_ref="CameraImageData">
+          <datareader_qos base_name="Demo_Library::CameraImage_Profile"/>
+        </data_reader>
+      </subscriber>
+
+      <participant_qos base_name="Demo_Library::CameraImage_Profile">
+        <participant_name>
+          <name>rearViewCameraObserver</name>
+          <role_name>rearViewCameraObserver</role_name>
+        </participant_name>
+      </participant_qos>
+    </domain_participant>
+  </domain_participant_library>
+  
 </dds>

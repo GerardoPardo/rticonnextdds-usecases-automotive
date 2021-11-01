@@ -223,6 +223,8 @@ extern "C" int publisher_main(int sample_count)
         if (retcode != DDS_RETCODE_OK) {
             printf("write error %d\n", retcode);
         }
+        printf("VisionSensor: Sent %d processed images so far\n", count);
+
         /* Go to the next line on the data file.  If the end of the file
            is reached the line counter will be set back to the beginning
          */

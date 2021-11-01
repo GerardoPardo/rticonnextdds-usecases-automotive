@@ -636,7 +636,7 @@ POSIXTimestampPlugin_get_serialized_key_max_size_for_keyhash(
 
 struct RTIXCdrInterpreterPrograms *POSIXTimestampPlugin_get_programs()
 {
-    return rti::xcdr::get_cdr_serialization_programs<
+    return ::rti::xcdr::get_cdr_serialization_programs<
     POSIXTimestamp, 
     true, true, true>();
 }
@@ -1449,7 +1449,7 @@ Alerts_DriverAlertsPlugin_get_serialized_key_max_size_for_keyhash(
 
 struct RTIXCdrInterpreterPrograms *Alerts_DriverAlertsPlugin_get_programs()
 {
-    return rti::xcdr::get_cdr_serialization_programs<
+    return ::rti::xcdr::get_cdr_serialization_programs<
     Alerts_DriverAlerts, 
     true, true, true>();
 }
@@ -2262,7 +2262,7 @@ Lane_LaneObjectPlugin_get_serialized_key_max_size_for_keyhash(
 
 struct RTIXCdrInterpreterPrograms *Lane_LaneObjectPlugin_get_programs()
 {
-    return rti::xcdr::get_cdr_serialization_programs<
+    return ::rti::xcdr::get_cdr_serialization_programs<
     Lane_LaneObject, 
     true, true, true>();
 }
@@ -2959,7 +2959,7 @@ Lane_LaneSensorPlugin_get_serialized_key_max_size_for_keyhash(
 
 struct RTIXCdrInterpreterPrograms *Lane_LaneSensorPlugin_get_programs()
 {
-    return rti::xcdr::get_cdr_serialization_programs<
+    return ::rti::xcdr::get_cdr_serialization_programs<
     Lane_LaneSensor, 
     true, true, true>();
 }
@@ -3655,7 +3655,7 @@ Lidar_PointPlugin_get_serialized_key_max_size_for_keyhash(
 
 struct RTIXCdrInterpreterPrograms *Lidar_PointPlugin_get_programs()
 {
-    return rti::xcdr::get_cdr_serialization_programs<
+    return ::rti::xcdr::get_cdr_serialization_programs<
     Lidar_Point, 
     true, true, true>();
 }
@@ -4388,7 +4388,7 @@ Lidar_PCloudPlugin_get_serialized_key_max_size_for_keyhash(
 
 struct RTIXCdrInterpreterPrograms *Lidar_PCloudPlugin_get_programs()
 {
-    return rti::xcdr::get_cdr_serialization_programs<
+    return ::rti::xcdr::get_cdr_serialization_programs<
     Lidar_PCloud, 
     true, true, true>();
 }
@@ -5085,7 +5085,7 @@ Lidar_LidarSensorPlugin_get_serialized_key_max_size_for_keyhash(
 
 struct RTIXCdrInterpreterPrograms *Lidar_LidarSensorPlugin_get_programs()
 {
-    return rti::xcdr::get_cdr_serialization_programs<
+    return ::rti::xcdr::get_cdr_serialization_programs<
     Lidar_LidarSensor, 
     true, true, true>();
 }
@@ -5791,7 +5791,7 @@ Platform_PlatformControlPlugin_get_serialized_key_max_size_for_keyhash(
 
 struct RTIXCdrInterpreterPrograms *Platform_PlatformControlPlugin_get_programs()
 {
-    return rti::xcdr::get_cdr_serialization_programs<
+    return ::rti::xcdr::get_cdr_serialization_programs<
     Platform_PlatformControl, 
     true, true, true>();
 }
@@ -6503,7 +6503,7 @@ Platform_PlatformStatusPlugin_get_serialized_key_max_size_for_keyhash(
 
 struct RTIXCdrInterpreterPrograms *Platform_PlatformStatusPlugin_get_programs()
 {
-    return rti::xcdr::get_cdr_serialization_programs<
+    return ::rti::xcdr::get_cdr_serialization_programs<
     Platform_PlatformStatus, 
     true, true, true>();
 }
@@ -7273,7 +7273,7 @@ Sensor_SensorObjectPlugin_get_serialized_key_max_size_for_keyhash(
 
 struct RTIXCdrInterpreterPrograms *Sensor_SensorObjectPlugin_get_programs()
 {
-    return rti::xcdr::get_cdr_serialization_programs<
+    return ::rti::xcdr::get_cdr_serialization_programs<
     Sensor_SensorObject, 
     true, true, true>();
 }
@@ -7982,7 +7982,7 @@ Sensor_SensorObjectListPlugin_get_serialized_key_max_size_for_keyhash(
 
 struct RTIXCdrInterpreterPrograms *Sensor_SensorObjectListPlugin_get_programs()
 {
-    return rti::xcdr::get_cdr_serialization_programs<
+    return ::rti::xcdr::get_cdr_serialization_programs<
     Sensor_SensorObjectList, 
     true, true, true>();
 }
@@ -8691,7 +8691,7 @@ Vision_VisionObjectPlugin_get_serialized_key_max_size_for_keyhash(
 
 struct RTIXCdrInterpreterPrograms *Vision_VisionObjectPlugin_get_programs()
 {
-    return rti::xcdr::get_cdr_serialization_programs<
+    return ::rti::xcdr::get_cdr_serialization_programs<
     Vision_VisionObject, 
     true, true, true>();
 }
@@ -9623,7 +9623,7 @@ Vision_VisionSensorPlugin_serialized_sample_to_keyhash(
 
 struct RTIXCdrInterpreterPrograms *Vision_VisionSensorPlugin_get_programs()
 {
-    return rti::xcdr::get_cdr_serialization_programs<
+    return ::rti::xcdr::get_cdr_serialization_programs<
     Vision_VisionSensor, 
     true, true, true>();
 }
@@ -10341,7 +10341,7 @@ builtin_interfaces_msg_dds__Time_Plugin_get_serialized_key_max_size_for_keyhash(
 
 struct RTIXCdrInterpreterPrograms *builtin_interfaces_msg_dds__Time_Plugin_get_programs()
 {
-    return rti::xcdr::get_cdr_serialization_programs<
+    return ::rti::xcdr::get_cdr_serialization_programs<
     builtin_interfaces_msg_dds__Time_, 
     true, true, true>();
 }
@@ -11043,7 +11043,7 @@ std_msgs_msg_dds__Header_Plugin_get_serialized_key_max_size_for_keyhash(
 
 struct RTIXCdrInterpreterPrograms *std_msgs_msg_dds__Header_Plugin_get_programs()
 {
-    return rti::xcdr::get_cdr_serialization_programs<
+    return ::rti::xcdr::get_cdr_serialization_programs<
     std_msgs_msg_dds__Header_, 
     true, true, true>();
 }
@@ -11751,7 +11751,7 @@ sensor_msgs_msg_dds__PointField_Plugin_get_serialized_key_max_size_for_keyhash(
 
 struct RTIXCdrInterpreterPrograms *sensor_msgs_msg_dds__PointField_Plugin_get_programs()
 {
-    return rti::xcdr::get_cdr_serialization_programs<
+    return ::rti::xcdr::get_cdr_serialization_programs<
     sensor_msgs_msg_dds__PointField_, 
     true, true, true>();
 }
@@ -12493,7 +12493,7 @@ sensor_msgs_msg_dds__PointCloud2_Plugin_get_serialized_key_max_size_for_keyhash(
 
 struct RTIXCdrInterpreterPrograms *sensor_msgs_msg_dds__PointCloud2_Plugin_get_programs()
 {
-    return rti::xcdr::get_cdr_serialization_programs<
+    return ::rti::xcdr::get_cdr_serialization_programs<
     sensor_msgs_msg_dds__PointCloud2_, 
     true, true, true>();
 }
@@ -13475,7 +13475,7 @@ ShapeTypePlugin_serialized_sample_to_keyhash(
 
 struct RTIXCdrInterpreterPrograms *ShapeTypePlugin_get_programs()
 {
-    return rti::xcdr::get_cdr_serialization_programs<
+    return ::rti::xcdr::get_cdr_serialization_programs<
     ShapeType, 
     true, true, true>();
 }
@@ -14411,7 +14411,7 @@ ShapeTypeExtendedPlugin_serialized_sample_to_keyhash(
 
 struct RTIXCdrInterpreterPrograms *ShapeTypeExtendedPlugin_get_programs()
 {
-    return rti::xcdr::get_cdr_serialization_programs<
+    return ::rti::xcdr::get_cdr_serialization_programs<
     ShapeTypeExtended, 
     true, true, true>();
 }
@@ -15360,7 +15360,7 @@ CameraImage_CameraImageDataPlugin_serialized_sample_to_keyhash(
 
 struct RTIXCdrInterpreterPrograms *CameraImage_CameraImageDataPlugin_get_programs()
 {
-    return rti::xcdr::get_cdr_serialization_programs<
+    return ::rti::xcdr::get_cdr_serialization_programs<
     CameraImage_CameraImageData, 
     true, true, true>();
 }

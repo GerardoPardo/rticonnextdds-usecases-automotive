@@ -19,6 +19,7 @@ if "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
     exit /b 1
 )
 
+set platformName=i86Win32VS2017
 for %%a in (%platformsToTry%) do (
     if exist "%libDir%\%%a\nddscore.dll" (
                 set platformName=%%a
@@ -34,14 +35,14 @@ set obj_dir=..\objs\%platformName%
 cd ../resource
 
 if exist "%obj_dir%" (
-   start %obj_dir%\VisionSensor.exe
-   start %obj_dir%\Lidar.exe
-   start %obj_dir%\sensorFusion.exe
-   start %obj_dir%\hmi.exe
-   start %obj_dir%\collisionAvoidance.exe
-   start %obj_dir%\vehiclePlatform.exe
-   start %obj_dir%\CameraImageDataSub.exe
-   start %obj_dir%\CameraImageDataPub.exe
+   start "VisionSensor" %obj_dir%\VisionSensor.exe
+   start "Lidar" %obj_dir%\Lidar.exe
+   start "sensorFusion" %obj_dir%\sensorFusion.exe
+   start "HMI" %obj_dir%\hmi.exe
+   start "collisionAvoidance" %obj_dir%\collisionAvoidance.exe
+   start "vehiclePlatform" %obj_dir%\vehiclePlatform.exe
+   start "CameraImageDataSub" %obj_dir%\CameraImageDataSub.exe
+   start "CameraImageDataPub" %obj_dir%\CameraImageDataPub.exe
    ) else (
    echo Object directory %obj_dir% not found. Check if the Visual Studio solution has been built
 )

@@ -9,8 +9,8 @@ For more information, type 'rtiddsgen -help' at a command shell
 or consult the RTI Connext manual.
 */
 
-#ifndef automotivePlugin_2097331952_h
-#define automotivePlugin_2097331952_h
+#ifndef automotivePlugin_2097331918_h
+#define automotivePlugin_2097331918_h
 
 #include "automotive.h"
 
@@ -3934,5 +3934,5 @@ extern "C" {
 #define NDDSUSERDllExport
 #endif
 
-#endif /* automotivePlugin_2097331952_h */
+#endif /* automotivePlugin_2097331918_h */
 

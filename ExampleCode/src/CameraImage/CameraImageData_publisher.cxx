@@ -119,7 +119,7 @@ static int publisher_shutdown(
  * This uses a plain_cast to speed the fill of the sample array.
  * returns true
  **/
-bool build_data_sample(CameraImage_CameraImageDataBuilder& builder)
+bool build_data_sample(CameraImage_CameraImageDataBuilder& builder, DDSDomainParticipant *participant)
 {
     // Build the CameraImage_CameraImageData data sample
     builder.add_id(ddsId);
@@ -131,9 +131,15 @@ bool build_data_sample(CameraImage_CameraImageDataBuilder& builder)
         *lfsrVal = lfsr;
         lfsr = (lfsr >> 1) ^ (-(lfsr & 1u) & 0xD0000001u);
     }
-    uint64_t tNow = UtcNowPrecise();
-    builder.add_sec_(tNow / 1000000000);
-    builder.add_nanosec_(tNow % 1000000000);
+    // uint64_t tNow = UtcNowPrecise();
+    // builder.add_sec_(tNow / 1000000000);
+    // builder.add_nanosec_(tNow % 1000000000);
+
+    DDS_Time_t time_now;
+    participant->get_current_time(time_now);
+    builder.add_sec_(time_now.sec);
+    builder.add_nanosec_(time_now.nanosec);
+
     return true;
 }
 #endif 	// DDS_LARGE_DATA_FLAT_DATA
@@ -145,15 +151,10 @@ bool build_data_sample(CameraImage_CameraImageDataBuilder& builder)
 extern "C" int publisher_main(int sample_count)
 {
     DDSDomainParticipant *participant = NULL;
-    DDSPublisher *publisher = NULL;
-    DDSTopic *topic = NULL;
-    DDSDataWriter *writer = NULL;
     CameraImage_CameraImageDataDataWriter * CameraImage_CameraImageData_writer = NULL;
     CameraImage_CameraImageData *instance = NULL;
     DDS_ReturnCode_t retcode;
     DDS_InstanceHandle_t instance_handle = DDS_HANDLE_NIL;
-    const char *type_name = NULL;
-    int domainId = 0;
     int count = 0;
     DDS_Duration_t send_period = {4,0};
 
@@ -165,8 +166,8 @@ extern "C" int publisher_main(int sample_count)
         send_period.sec = time / 1000;
         send_period.nanosec = (time % 1000) * 1000 * 1000;
     }
+    printf("CameraDataPub: publicationInterval = %ld millisec\n", time);
 
-    domainId = prop->getLongProperty("config.domainId");
     ddsId    = (uint32_t) prop->getLongProperty("config.ddsId");
     if(ddsId == 0) ddsId = 404;
 
@@ -190,56 +191,32 @@ extern "C" int publisher_main(int sample_count)
         return -1;
     }
 
+    if ( DDSTheParticipantFactory->register_type_support(
+            CameraImage_CameraImageDataTypeSupport::register_type, 
+            CameraImage_CameraImageDataTypeSupport::get_type_name())
+        != DDS_RETCODE_OK) {
+
+        fprintf(stderr, "register_type_support error(%s:%d)\n", __FILE__, __LINE__);
+        publisher_shutdown(participant);
+        return -1;
+    }
+
+
     /* To customize participant QoS, use the configuration file USER_QOS_PROFILES.xml */
     // create participant
-    participant = DDSTheParticipantFactory->create_participant_with_profile(
-        domainId, qosLibrary.c_str(), qosProfile.c_str(),
-        NULL /* listener */, DDS_STATUS_MASK_NONE);
+	participant = DDSTheParticipantFactory->create_participant_from_config("automotive_lib::rearViewCamera");
     if (participant == NULL) {
-        fprintf(stderr, "create_participant error(%s:%d)\n", __FILE__, __LINE__);
+        fprintf(stderr, "create_participant_from_config error(%s:%d)\n", __FILE__, __LINE__);
         publisher_shutdown(participant);
         return -1;
+    }
+    else {
+        fprintf(stderr, "Created Participant from config: \"automotive_lib::rearViewCamera\"\n");
     }
 
-    // create publisher
-    publisher = participant->create_publisher_with_profile(
-        qosLibrary.c_str(), qosProfile.c_str(), NULL /* listener */, DDS_STATUS_MASK_NONE);
-    if (publisher == NULL) {
-        fprintf(stderr, "create_publisher error(%s:%d)\n", __FILE__, __LINE__);
-        publisher_shutdown(participant);
-        return -1;
-    }
+    CameraImage_CameraImageData_writer = CameraImage_CameraImageDataDataWriter::narrow(
+        participant->lookup_datawriter_by_name("CameraPublisher::CameraWriter"));
 
-    // register and create topic
-    type_name = CameraImage_CameraImageDataTypeSupport::get_type_name();
-    retcode = CameraImage_CameraImageDataTypeSupport::register_type(
-        participant, type_name);
-    if (retcode != DDS_RETCODE_OK) {
-        fprintf(stderr, "register_type error %d (%s:%d)\n", retcode, __FILE__, __LINE__);
-        publisher_shutdown(participant);
-        return -1;
-    }
-
-    topic = participant->create_topic_with_profile(
-        topicName.c_str(),
-        type_name, qosLibrary.c_str(), qosProfile.c_str(), NULL /* listener */,
-        DDS_STATUS_MASK_NONE);
-    if (topic == NULL) {
-        fprintf(stderr, "create_topic error(%s:%d)\n", __FILE__, __LINE__);
-        publisher_shutdown(participant);
-        return -1;
-    }
-
-    // create datawriter
-    writer = publisher->create_datawriter_with_profile(
-        topic, qosLibrary.c_str(), qosProfile.c_str(), NULL /* listener */,
-        DDS_STATUS_MASK_NONE);
-    if (writer == NULL) {
-        fprintf(stderr, "create_datawriter error(%s:%d)\n", __FILE__, __LINE__);
-        publisher_shutdown(participant);
-        return -1;
-    }
-    CameraImage_CameraImageData_writer = CameraImage_CameraImageDataDataWriter::narrow(writer);
     if (CameraImage_CameraImageData_writer == NULL) {
         fprintf(stderr, "DataWriter narrow error(%s:%d)\n", __FILE__, __LINE__);
         publisher_shutdown(participant);
@@ -264,6 +241,12 @@ extern "C" int publisher_main(int sample_count)
 #endif	// ndef DDS_LARGE_DATA_FLAT_DATA
 
     printf("start sending\n");
+
+    DDS_Time_t time_begin;
+    participant->get_current_time(time_begin);
+    double time_begin_s  = time_begin.sec + 1e-9*time_begin.nanosec;
+    double send_period_s = send_period.sec + 1e-9*send_period.nanosec;
+
     /* Main loop */
     for (count=0; (sample_count == 0) || (count < sample_count); ++count) {
 #ifdef DDS_LARGE_DATA_FLAT_DATA
@@ -275,7 +258,7 @@ extern "C" int publisher_main(int sample_count)
         }
 
         // Build the CameraImage_CameraImageData data sample using the builder
-        if (!build_data_sample(builder)) {
+        if (!build_data_sample(builder, participant)) {
             printf("error building the sample(%s:%d)\n", __FILE__, __LINE__);
             publisher_shutdown(participant);
             return -1;
@@ -302,7 +285,6 @@ extern "C" int publisher_main(int sample_count)
         }
 #endif 	// ndef DDS_LARGE_DATA_FLAT_DATA
 #endif	//  def DDS_LARGE_DATA_ZERO_COPY
-        printf("Writing CameraImage_CameraImageData, count %d\n", count);
 
 #ifndef DDS_LARGE_DATA_FLAT_DATA
         /* If not using Flat Data, Modify the data to be sent here */
@@ -312,11 +294,15 @@ extern "C" int publisher_main(int sample_count)
             lfsr = (lfsr >> 1) ^ (-(lfsr & 1u) & 0xD0000001u);
         }
         instance->seqnum = seqNum++;
-        uint64_t tNow = UtcNowPrecise();
-        instance->sec_ = (tNow / 1000000000);
-        instance->nanosec_ = (tNow % 1000000000);
+        // uint64_t tNow = UtcNowPrecise();
+        // instance->sec_ = (tNow / 1000000000);
+        // instance->nanosec_ = (tNow % 1000000000);
         //printf("tNow: %llu = %u.%u\n", tNow, instance->sec_, instance->nanosec_);
 
+        DDS_Time_t instance_timestamp;
+        participant->get_current_time(instance_timestamp);
+        instance->sec_     = instance_timestamp.sec;
+        instance->nanosec_ = instance_timestamp.nanosec;
 
 #endif  // ndef DDS_LARGE_DATA_FLAT_DATA
 
@@ -324,8 +310,26 @@ extern "C" int publisher_main(int sample_count)
         if (retcode != DDS_RETCODE_OK) {
             fprintf(stderr, "write error %d (%s:%d)\n", retcode, __FILE__, __LINE__);
         }
+        printf("CameraImagePub: t=%d.%d, sent %d imgs (size: %.2f MB), BW: %3.3f MB/sec\n", 
+            instance->sec_%10000, instance->nanosec_/1000000,
+            count,
+            1e-6*MAX_IMAGE_SIZE,
+            1e-6*MAX_IMAGE_SIZE*send_period_s
+            );
 
-        NDDSUtility::sleep(send_period);
+
+        DDS_Time_t time_now;
+        participant->get_current_time(time_now);
+        double time_now_s   = time_now.sec + 1e-9*time_now.nanosec;
+        double time_next_s  = time_begin_s + send_period_s*(count+1);
+        double time_sleep_s = time_next_s - time_now_s;
+        
+        DDS_Duration_t time_sleep;
+        time_sleep.sec     = (long)time_sleep_s;
+        time_sleep.nanosec = (long)(1e9*(time_sleep_s - time_sleep.sec));
+
+        // printf("CameraImagePub: sleeping %f (%u.%u)\n", time_sleep_s, time_sleep.sec, time_sleep.nanosec);
+        NDDSUtility::sleep(time_sleep);
     }
 
 #ifndef DDS_LARGE_DATA_FLAT_DATA

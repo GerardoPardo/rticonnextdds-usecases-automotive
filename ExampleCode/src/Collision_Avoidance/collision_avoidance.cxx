@@ -560,12 +560,17 @@ extern "C" int subscriber_main(int sample_count)
                                 alert_sent = false;
                             }
                         }
+                        printf("collisionAvoidance: t = %d.%d, alarm_sent = %s\n", 
+                            info_seq[i].reception_timestamp.sec%10000,
+                            info_seq[i].reception_timestamp.nanosec/1000000,
+                            alert_sent?"true":"false");
+
                         /* Some random data copy into the platform control. No real algorithm 
                            just to get data changing 
                          */
                         control_instance->sample_id = seq++;
                         if (sensor_data_seq[i].objects.length() > 0) {
-                        control_instance->blinkerStatus = IndicatorStatusEnum(sensor_data_seq[i].objects[0].classification % 4);
+                            control_instance->blinkerStatus = IndicatorStatusEnum(sensor_data_seq[i].objects[0].classification % 4);
                             control_instance->speed = sensor_data_seq[i].objects[0].velocity[0];
                             control_instance->vehicleSteerAngle = sensor_data_seq[i].objects[0].position[0];
                         }

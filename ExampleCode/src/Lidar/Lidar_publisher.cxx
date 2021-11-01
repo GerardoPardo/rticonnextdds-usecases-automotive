@@ -432,6 +432,10 @@ static int publisher_shutdown(
 
 
     /* Main loop */
+    int count = 0;
+    DDS_Time_t start_time_tmp;
+    participant->get_current_time(start_time_tmp);
+    double start_time = start_time_tmp.sec + 1e-9*start_time_tmp.nanosec;
     while(1) {
         /* get the data */
         shapesToPointCloud(&shapeList[0], &topLidar);
@@ -441,11 +445,20 @@ static int publisher_shutdown(
                       (((DDS_Long *)&(instance->header_.stamp_.nanosec_))));
 
         /* And send it */
+        ++count;
         retcode = Lidar_LidarSensor_writer->write(*instance, instance_handle);
         if (retcode != DDS_RETCODE_OK) {
             printf("write error %d\n", retcode);
         }
 
+        if ( (count % 20) == 0) {
+            DDS_Time_t current_time_tmp;
+            participant->get_current_time(current_time_tmp);
+            double current_time = current_time_tmp.sec + 1e-9*current_time_tmp.nanosec;
+
+            printf("Lidar: Sent %d pointclouds so far (%f PC/sec)\n", 
+                   count, count/(current_time - start_time));
+        }
         NDDSUtility::sleep(send_period);
     }
 
