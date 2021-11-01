@@ -369,10 +369,6 @@ RTI Connext user manual.
 
     <qos_profile name="CameraImage_Profile" base_name="BuiltinQosLibExp::Generic.StrictReliable" is_default_qos="false">
       <participant_qos>
-        <participant_name>
-          <name>rearViewCamParticipant</name>
-          <role_name>rearViewCamParticipantRole</role_name>
-        </participant_name>
         <transport_builtin>
           <mask>SHMEM|UDPv4</mask>
         </transport_builtin>        
@@ -392,6 +388,9 @@ RTI Connext user manual.
           <kind>ASYNCHRONOUS_PUBLISH_MODE_QOS</kind>
         </publish_mode>
       </datawriter_qos>
+    </qos_profile>
+
+    <qos_profile name="CameraImage_Low_BW" base_name="CameraImage_Profile" is_default_qos="false">
       <datareader_qos>
         <time_based_filter>
             <minimum_separation>
@@ -471,7 +470,7 @@ RTI Connext user manual.
 
       <subscriber name="CameraSubscriber">
         <data_reader name="CameraReader" topic_ref="CameraImageData">
-          <datareader_qos base_name="Demo_Library::CameraImage_Profile"/>
+          <datareader_qos base_name="Demo_Library::CameraImage_Low_BW"/>
         </data_reader>
       </subscriber>
 
